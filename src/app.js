@@ -1,6 +1,6 @@
 import { loadState, saveState, clearState, newId, MODERN_LAND_PARS, validateInput } from './state.js';
 import { generateDemoTournament, fillRandomScores } from './demo.js';
-import { parseScoreInput } from './format.js';
+import { parseScoreInput, formatOver, overColor } from './format.js';
 import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './peoria.js';
 import { render } from './render.js';
 import { playRevealAnimation } from './ui-awards.js';
@@ -12,6 +12,53 @@ function update(fn) {
   fn(state);
   saveState(state);
   render(state);
+}
+
+function formatSumLocal(stroke, par) {
+  if (stroke === 0) return '—';
+  const o = stroke - par;
+  return `${stroke} (${formatOver(o)})`;
+}
+
+function updateRowTotals(playerId) {
+  const player = state.players.find(p => p.id === playerId);
+  if (!player) return;
+  const cell = document.querySelector(`[data-action="set-score"][data-player-id="${playerId}"]`);
+  if (!cell) return;
+  const row = cell.closest('tr');
+  if (!row) return;
+
+  let out = 0, inSum = 0;
+  for (let i = 0; i < 9; i++)  if (player.scores[i] != null) out += player.scores[i];
+  for (let i = 9; i < 18; i++) if (player.scores[i] != null) inSum += player.scores[i];
+  const tot = out + inSum;
+
+  const sums = row.querySelectorAll('.sum');
+  if (sums.length >= 3) {
+    sums[0].textContent = formatSumLocal(out, 36);
+    sums[1].textContent = formatSumLocal(inSum, 36);
+    sums[2].textContent = formatSumLocal(tot, 72);
+  }
+}
+
+function updateInputProgress() {
+  const totalPlayers = state.players.length;
+  if (totalPlayers === 0) return;
+  const completePlayers = state.players.filter(p => p.scores.every(s => s !== null && s !== undefined)).length;
+
+  const fill = document.querySelector('.progress-fill');
+  if (fill) fill.style.width = `${(completePlayers / totalPlayers) * 100}%`;
+  const text = document.querySelector('.input-progress > span');
+  if (text) text.textContent = `${completePlayers}/${totalPlayers} players complete`;
+
+  state.flights.forEach(f => {
+    const complete = f.playerIds.every(pid => {
+      const p = state.players.find(p => p.id === pid);
+      return p?.scores.every(s => s !== null && s !== undefined);
+    });
+    const pill = document.querySelector(`.flight-pill[data-flight-id="${f.id}"]`);
+    if (pill) pill.textContent = `${complete ? '✓ ' : ''}${f.name}`;
+  });
 }
 
 function computeFlightStandings(flights, perPlayer) {
@@ -105,26 +152,29 @@ function handleAction(action, el, e) {
       const pid = el.dataset.playerId;
       const hole = parseInt(el.dataset.hole, 10);
       const over = parseScoreInput(el.value);
-      // capture position in input order BEFORE re-render
-      const allBefore = Array.from(document.querySelectorAll('[data-action="set-score"]'));
-      const currentIdx = allBefore.indexOf(el);
+      const player = state.players.find(p => p.id === pid);
+      if (!player) break;
 
-      update(s => {
-        const player = s.players.find(p => p.id === pid);
-        if (!player) return;
-        if (over === null) { player.scores[hole] = null; return; }
-        const par = s.course.holes[hole].par;
-        const stroke = capScore(par, Math.max(1, par + over));
-        player.scores[hole] = stroke;
-      });
+      let stroke = null;
+      if (over !== null) {
+        const par = state.course.holes[hole].par;
+        stroke = capScore(par, Math.max(1, par + over));
+      }
+      player.scores[hole] = stroke;
+      saveState(state);
 
-      // After re-render, find the next cell by position in fresh DOM
-      setTimeout(() => {
-        const allAfter = Array.from(document.querySelectorAll('[data-action="set-score"]'));
-        if (currentIdx >= 0 && currentIdx + 1 < allAfter.length) {
-          allAfter[currentIdx + 1].focus();
-        }
-      }, 0);
+      // Targeted DOM update — no full re-render, so user keeps focus where they click
+      if (stroke !== null) {
+        const par = state.course.holes[hole].par;
+        const newOver = stroke - par;
+        el.className = `score-cell ${overColor(newOver)}`;
+        el.value = formatOver(newOver);
+      } else {
+        el.className = 'score-cell';
+        el.value = '';
+      }
+      updateRowTotals(pid);
+      updateInputProgress();
       break;
     }
     case 'finalize-scoring': {
@@ -202,6 +252,17 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.key !== 'Enter') return;
   const t = e.target;
+  // Enter on score cell: commit + advance to next cell in DOM order
+  if (t.dataset.action === 'set-score') {
+    e.preventDefault();
+    t.blur();  // triggers set-score handler to save state
+    const all = Array.from(document.querySelectorAll('[data-action="set-score"]'));
+    const idx = all.indexOf(t);
+    if (idx >= 0 && idx + 1 < all.length) {
+      setTimeout(() => all[idx + 1].focus(), 0);
+    }
+    return;
+  }
   if (t.dataset.action === 'add-player-input') {
     const fid = t.dataset.flightId;
     const name = t.value.trim();

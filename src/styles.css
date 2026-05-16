@@ -233,9 +233,16 @@ body[data-display-mode="true"] .main { padding: 40px; }
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   border-radius: 0;
+  color: var(--text);
+  caret-color: var(--accent);
+}
+.score-cell:focus {
+  background: #1a1a1a;
+  border-color: var(--accent);
+  color: var(--text);
 }
 .score-cell.under { color: var(--under); }
-.score-cell.par { color: var(--par); }
+.score-cell.par { color: var(--text); }
 .score-cell.over-1 { color: var(--over-1); }
 .score-cell.over-2plus { color: var(--over-2plus); }
 
