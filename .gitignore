@@ -2,3 +2,4 @@
 .DS_Store
 snapshots/
 node_modules/
+dist/
