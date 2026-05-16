@@ -3,6 +3,7 @@ import { generateDemoTournament, fillRandomScores } from './demo.js';
 import { parseScoreInput } from './format.js';
 import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './peoria.js';
 import { render } from './render.js';
+import { playRevealAnimation } from './ui-awards.js';
 
 let state = loadState();
 
@@ -165,6 +166,20 @@ function handleAction(action, el, e) {
       break;
     case 'goto-awards':
       update(s => { s.ui.activeTab = 'awards'; });
+      break;
+    case 'reveal-next': {
+      const key = el.dataset.key;
+      playRevealAnimation(state, key, () => {
+        update(s => { s.ui.revealedAwards = [...(s.ui.revealedAwards || []), key]; });
+      });
+      break;
+    }
+    case 'replay-reveal': {
+      playRevealAnimation(state, el.dataset.key, () => {});
+      break;
+    }
+    case 'replay-awards':
+      update(s => { s.ui.revealedAwards = []; });
       break;
   }
 }
