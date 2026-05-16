@@ -92,9 +92,9 @@ function renderFinal(state) {
     <section class="card peoria-holes-card">
       <h2 class="card-title">🎲 Peoria Holes</h2>
       <div class="peoria-display">
-        <span>Par 3: <b>${peoriaHoles.par3.join(', ')}</b></span>
-        <span>Par 4: <b>${peoriaHoles.par4.join(', ')}</b></span>
-        <span>Par 5: <b>${peoriaHoles.par5.join(', ')}</b></span>
+        <span>Par 3: ${holeChips(peoriaHoles.par3, 0)}</span>
+        <span>Par 4: ${holeChips(peoriaHoles.par4, 2)}</span>
+        <span>Par 5: ${holeChips(peoriaHoles.par5, 4)}</span>
       </div>
     </section>
 
@@ -121,8 +121,8 @@ function renderFinal(state) {
           <tr><th>R</th><th>Player</th><th>Flight</th><th>Gross</th><th>Hcp</th><th>Net</th><th>Class</th></tr>
         </thead>
         <tbody>
-          ${fullStandings.map(r => `
-            <tr>
+          ${fullStandings.map((r, i) => `
+            <tr style="animation-delay:${i * 22}ms">
               <td class="rank">${r.rank}</td>
               <td>${r.name}</td>
               <td>${r.flightName}</td>
@@ -139,13 +139,24 @@ function renderFinal(state) {
     <section class="card">
       <h2 class="card-title">Standings by Playing Flight (Avg Net)</h2>
       <div class="flight-standings">
-        ${results.flightStandings.map((s, i) => `
-          <div class="flight-stat">
-            <div class="rank">${i + 1}</div>
-            <div class="name">${s.name}</div>
-            <div class="num"><b>${s.avgNet.toFixed(1)}</b> <span class="muted">(${s.memberCount} players)</span></div>
-          </div>
-        `).join('')}
+        ${(() => {
+          const avgs = results.flightStandings.map(s => s.avgNet).filter(v => v > 0);
+          const minA = Math.min(...avgs);
+          const maxA = Math.max(...avgs);
+          const range = Math.max(1, maxA - minA);
+          return results.flightStandings.map((s, i) => {
+            // Bar: longer = better (lower net) → invert
+            const norm = s.memberCount === 0 ? 0 : 1 - ((s.avgNet - minA) / range);
+            return `
+              <div class="flight-stat" style="animation: fadeInUp 360ms ease-out both; animation-delay: ${i * 60}ms">
+                <div class="rank">${i + 1}</div>
+                <div class="name">${s.name}</div>
+                <div class="bar-wrap"><div class="bar" style="width:${(0.15 + norm * 0.85) * 100}%; animation-delay:${100 + i * 60}ms"></div></div>
+                <div class="num"><b>${s.avgNet.toFixed(1)}</b> <span class="muted">(${s.memberCount})</span></div>
+              </div>
+            `;
+          }).join('');
+        })()}
       </div>
     </section>
 
@@ -188,4 +199,8 @@ function podiumList(rows) {
       `).join('')}
     </ol>
   `;
+}
+
+function holeChips(holes, startDelay) {
+  return holes.map((n, i) => `<span class="hole-chip" style="animation-delay:${(startDelay + i) * 90}ms">${n}</span>`).join('');
 }
