@@ -59,5 +59,133 @@ function formatOverSimple(over) {
 }
 
 function renderFinal(state) {
-  return '<p>Final view — coming in next task.</p>';
+  const { peoriaHoles, results, flights } = state;
+  if (!results) return '<p>No results yet.</p>';
+
+  const enrichRow = (r) => {
+    if (!r) return null;
+    const p = results.perPlayer.find(x => x.playerId === r.playerId);
+    const f = flights.find(x => x.playerIds.includes(r.playerId));
+    return { ...p, flightName: f?.name || '—' };
+  };
+
+  const bgo = enrichRow(results.bgo);
+  const bno = enrichRow(results.bno);
+  const flightAEnriched = results.flightA.map(enrichRow);
+  const flightBEnriched = results.flightB.map(enrichRow);
+
+  const fullStandings = [...results.perPlayer]
+    .sort((a, b) => a.net - b.net || a.handicap - b.handicap || a.name.localeCompare(b.name))
+    .map((r, i) => {
+      const f = flights.find(x => x.playerIds.includes(r.playerId));
+      let badge = '';
+      if (r.playerId === results.bgo.playerId) badge = 'BGO 🏆';
+      if (r.playerId === results.bno.playerId) badge = badge ? `${badge}, BNO 🏆` : 'BNO 🏆';
+      if (!badge) {
+        if (results.flightA.find(x => x.playerId === r.playerId)) badge = 'Flight A';
+        else if (results.flightB.find(x => x.playerId === r.playerId)) badge = 'Flight B';
+      }
+      return { ...r, rank: i + 1, flightName: f?.name || '—', badge };
+    });
+
+  return `
+    <section class="card peoria-holes-card">
+      <h2 class="card-title">🎲 Peoria Holes</h2>
+      <div class="peoria-display">
+        <span>Par 3: <b>${peoriaHoles.par3.join(', ')}</b></span>
+        <span>Par 4: <b>${peoriaHoles.par4.join(', ')}</b></span>
+        <span>Par 5: <b>${peoriaHoles.par5.join(', ')}</b></span>
+      </div>
+    </section>
+
+    <div class="winner-summary">
+      ${winnerCard('BEST GROSS OVERALL', bgo.name, bgo.flightName, [['Gross', bgo.gross]])}
+      ${winnerCard('BEST NET OVERALL', bno.name, bno.flightName, [['Gross', bno.gross], ['Hcp', bno.handicap], ['Net', bno.net]])}
+    </div>
+
+    <div class="flight-winners">
+      <section class="card">
+        <h2 class="card-title">Flight A · Top 3</h2>
+        ${podiumList(flightAEnriched)}
+      </section>
+      <section class="card">
+        <h2 class="card-title">Flight B · Top 3</h2>
+        ${podiumList(flightBEnriched)}
+      </section>
+    </div>
+
+    <section class="card">
+      <h2 class="card-title">Full Standings</h2>
+      <table class="leaderboard">
+        <thead>
+          <tr><th>R</th><th>Player</th><th>Flight</th><th>Gross</th><th>Hcp</th><th>Net</th><th>Class</th></tr>
+        </thead>
+        <tbody>
+          ${fullStandings.map(r => `
+            <tr>
+              <td class="rank">${r.rank}</td>
+              <td>${r.name}</td>
+              <td>${r.flightName}</td>
+              <td class="num">${r.gross}</td>
+              <td class="num">${r.handicap}</td>
+              <td class="num"><b>${r.net}</b></td>
+              <td>${r.badge}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Standings by Playing Flight (Avg Net)</h2>
+      <div class="flight-standings">
+        ${results.flightStandings.map((s, i) => `
+          <div class="flight-stat">
+            <div class="rank">${i + 1}</div>
+            <div class="name">${s.name}</div>
+            <div class="num"><b>${s.avgNet.toFixed(1)}</b> <span class="muted">(${s.memberCount} players)</span></div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+
+    <div class="bottom-bar">
+      <div>
+        <button data-action="unlock-scoring">🔓 Unlock Scoring</button>
+        <button data-action="randomize-peoria">🎲 Re-randomize Peoria</button>
+      </div>
+      <div>
+        <button class="primary" data-action="goto-awards">🏆 Go to Awards Ceremony →</button>
+        <button data-action="save-snapshot">Save Snapshot</button>
+      </div>
+    </div>
+  `;
+}
+
+function winnerCard(label, name, flightName, stats) {
+  return `
+    <div class="winner-card">
+      <div class="winner-label">${label}</div>
+      <div class="winner-name">${name}</div>
+      <div class="winner-flight">${flightName}</div>
+      <div class="winner-stats">
+        ${stats.map(([l, v]) => `<div><div class="stat-label">${l}</div><div class="stat-val">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function podiumList(rows) {
+  if (rows.length === 0) return '<p class="empty">—</p>';
+  return `
+    <ol class="podium">
+      ${rows.slice(0, 3).map((r, i) => `
+        <li>
+          <span class="medal">${['🥇','🥈','🥉'][i]}</span>
+          <span class="name">${r.name}</span>
+          <span class="num"><b>${r.net}</b> <span class="muted">(${r.gross} - ${r.handicap})</span></span>
+        </li>
+      `).join('')}
+    </ol>
+  `;
 }

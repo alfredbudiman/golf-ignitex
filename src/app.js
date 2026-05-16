@@ -153,6 +153,19 @@ function handleAction(action, el, e) {
       });
       break;
     }
+    case 'unlock-scoring':
+      if (!confirm('Unlock scoring? Peoria holes and results will be cleared.')) return;
+      update(s => {
+        s.tournament.status = 'input';
+        s.peoriaHoles = null;
+        s.results = null;
+        s.ui.activeTab = 'input';
+        s.ui.revealedAwards = [];
+      });
+      break;
+    case 'goto-awards':
+      update(s => { s.ui.activeTab = 'awards'; });
+      break;
   }
 }
 

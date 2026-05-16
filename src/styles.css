@@ -250,3 +250,37 @@ body[data-display-mode="true"] .main { padding: 40px; }
 .leaderboard .rank { color: var(--accent); font-weight: 800; width: 40px; }
 .leaderboard .num { font-variant-numeric: tabular-nums; text-align: right; }
 .leaderboard tbody tr:hover { background: var(--surface); }
+
+.peoria-holes-card { background: linear-gradient(135deg, rgba(183,28,44,0.1), rgba(217,161,59,0.05)); }
+.peoria-display { display: flex; gap: 32px; font-size: 14px; }
+.peoria-display b { color: var(--accent); font-weight: 800; font-size: 18px; margin-left: 6px; }
+
+.winner-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.winner-card {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-lo) 100%);
+  padding: 24px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+.winner-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.8; margin-bottom: 10px; }
+.winner-name { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 4px; }
+.winner-flight { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.winner-stats { display: flex; justify-content: center; gap: 32px; }
+.winner-stats .stat-label { font-size: 10px; letter-spacing: 0.15em; opacity: 0.7; text-transform: uppercase; }
+.winner-stats .stat-val { font-size: 24px; font-weight: 800; }
+
+.flight-winners { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.podium { list-style: none; padding: 0; }
+.podium li { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.podium li:last-child { border-bottom: none; }
+.podium .medal { font-size: 22px; }
+.podium .name { flex: 1; font-weight: 600; }
+.podium .num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.podium .num b { color: var(--text); margin-right: 6px; }
+.muted { color: var(--text-muted); font-size: 11px; }
+
+.flight-standings { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.flight-stat { display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--surface-hi); border-radius: var(--radius); }
+.flight-stat .rank { color: var(--accent); font-weight: 800; font-size: 18px; min-width: 24px; }
+.flight-stat .name { flex: 1; }
+.flight-stat .num b { font-size: 18px; }
