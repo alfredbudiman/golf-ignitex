@@ -18,14 +18,6 @@ function replace(newState) {
   render(state);
 }
 
-function focusNextCell(el) {
-  const all = Array.from(document.querySelectorAll('[data-action="set-score"]'));
-  const idx = all.indexOf(el);
-  if (idx >= 0 && idx + 1 < all.length) {
-    setTimeout(() => all[idx + 1].focus(), 0);
-  }
-}
-
 function handleAction(action, el, e) {
   switch (action) {
     case 'switch-tab':
@@ -102,6 +94,10 @@ function handleAction(action, el, e) {
       const pid = el.dataset.playerId;
       const hole = parseInt(el.dataset.hole, 10);
       const over = parseScoreInput(el.value);
+      // capture position in input order BEFORE re-render
+      const allBefore = Array.from(document.querySelectorAll('[data-action="set-score"]'));
+      const currentIdx = allBefore.indexOf(el);
+
       update(s => {
         const player = s.players.find(p => p.id === pid);
         if (!player) return;
@@ -110,7 +106,14 @@ function handleAction(action, el, e) {
         const stroke = capScore(par, Math.max(1, par + over));
         player.scores[hole] = stroke;
       });
-      focusNextCell(el);
+
+      // After re-render, find the next cell by position in fresh DOM
+      setTimeout(() => {
+        const allAfter = Array.from(document.querySelectorAll('[data-action="set-score"]'));
+        if (currentIdx >= 0 && currentIdx + 1 < allAfter.length) {
+          allAfter[currentIdx + 1].focus();
+        }
+      }, 0);
       break;
     }
     case 'finalize-scoring': {
