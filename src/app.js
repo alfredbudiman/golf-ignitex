@@ -1,7 +1,7 @@
 import { loadState, saveState, clearState, newId, MODERN_LAND_PARS, validateInput } from './state.js';
 import { generateDemoTournament, fillRandomScores } from './demo.js';
 import { parseScoreInput } from './format.js';
-import { capScore } from './peoria.js';
+import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './peoria.js';
 import { render } from './render.js';
 
 let state = loadState();
@@ -10,6 +10,15 @@ function update(fn) {
   fn(state);
   saveState(state);
   render(state);
+}
+
+function computeFlightStandings(flights, perPlayer) {
+  return flights.map(f => {
+    const members = perPlayer.filter(r => f.playerIds.includes(r.playerId));
+    if (members.length === 0) return { flightId: f.id, name: f.name, avgNet: 0, totalNet: 0, memberCount: 0 };
+    const totalNet = members.reduce((s, m) => s + m.net, 0);
+    return { flightId: f.id, name: f.name, totalNet, memberCount: members.length, avgNet: totalNet / members.length };
+  }).sort((a, b) => a.avgNet - b.avgNet);
 }
 
 function replace(newState) {
@@ -126,6 +135,22 @@ function handleAction(action, el, e) {
       }
       if (!confirm('Lock all scoring? You can still unlock from Leaderboard.')) return;
       update(s => { s.tournament.status = 'locked'; s.ui.activeTab = 'leaderboard'; });
+      break;
+    }
+    case 'randomize-peoria': {
+      update(s => {
+        s.peoriaHoles = pickPeoriaHoles(s.course.holes, Math.random);
+        const perPlayer = s.players.map(p => {
+          const r = computePlayerResult(p, s.course.holes, s.peoriaHoles);
+          return { playerId: p.id, name: p.name, ...r };
+        });
+        const flightSplit = splitFlights(perPlayer);
+        const flightStandings = computeFlightStandings(s.flights, perPlayer);
+        s.results = { perPlayer, ...flightSplit, flightStandings };
+        s.tournament.status = 'finalized';
+        s.ui.revealedAwards = [];
+        s.ui.activeTab = 'leaderboard';
+      });
       break;
     }
   }

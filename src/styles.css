@@ -229,3 +229,24 @@ body[data-display-mode="true"] .main { padding: 40px; }
 .score-cell.par { color: var(--par); }
 .score-cell.over-1 { color: var(--over-1); }
 .score-cell.over-2plus { color: var(--over-2plus); }
+
+.banner {
+  background: rgba(217,161,59,0.1);
+  border: 1px solid rgba(217,161,59,0.3);
+  color: #d9a13b;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.leaderboard {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.leaderboard th, .leaderboard td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+.leaderboard th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.leaderboard .rank { color: var(--accent); font-weight: 800; width: 40px; }
+.leaderboard .num { font-variant-numeric: tabular-nums; text-align: right; }
+.leaderboard tbody tr:hover { background: var(--surface); }
