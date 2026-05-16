@@ -1,5 +1,6 @@
 .superpowers/
 .DS_Store
+.claude/
 snapshots/
 node_modules/
 dist/
