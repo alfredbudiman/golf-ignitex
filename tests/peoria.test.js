@@ -153,3 +153,24 @@ describe('splitFlights', () => {
     expect(flightB.map(r => r.playerId)).toEqual(['p5']);
   });
 });
+
+describe('splitFlights edge cases', () => {
+  it('handles 3 players → 1 in A, 1 in B after BGO/BNO exclusion', () => {
+    const results = [
+      { playerId: 'p1', gross: 70, net: 60, handicap: 12, name: 'A' },
+      { playerId: 'p2', gross: 75, net: 65, handicap: 18, name: 'B' },
+      { playerId: 'p3', gross: 80, net: 70, handicap: 22, name: 'C' },
+    ];
+    const r = splitFlights(results);
+    expect(r.flightA).toHaveLength(1);
+    expect(r.flightB).toHaveLength(1);
+  });
+
+  it('handles empty player list', () => {
+    const r = splitFlights([]);
+    expect(r.bgo).toBeNull();
+    expect(r.bno).toBeNull();
+    expect(r.flightA).toEqual([]);
+    expect(r.flightB).toEqual([]);
+  });
+});

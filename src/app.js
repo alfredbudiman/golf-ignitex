@@ -130,9 +130,14 @@ function handleAction(action, el, e) {
     case 'finalize-scoring': {
       const v = validateInput(state);
       if (!v.valid) {
-        const firstPid = Object.keys(v.emptyCellsBy)[0];
-        const firstHole = v.emptyCellsBy[firstPid][0];
-        alert(`Cannot finalize: ${v.errors.join('; ')}\n\nFirst missing: player ${firstPid} hole ${firstHole + 1}`);
+        const missing = Object.entries(v.emptyCellsBy).map(([pid, holes]) => {
+          const p = state.players.find(x => x.id === pid);
+          return `${p?.name || pid} (missing holes: ${holes.map(h => h + 1).join(',')})`;
+        });
+        alert(
+          `Cannot finalize — incomplete scores:\n\n${missing.join('\n')}\n\n` +
+          `To skip a no-show player: go to Setup → Edit and remove them.`
+        );
         return;
       }
       if (!confirm('Lock all scoring? You can still unlock from Leaderboard.')) return;
