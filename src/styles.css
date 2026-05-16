@@ -514,6 +514,90 @@ button.big { font-size: 18px; padding: 16px 36px; letter-spacing: 0.1em; }
 }
 body[data-display-mode="true"] .overlay-name { font-size: 110px; }
 
+/* === Awards CINEMATIC OPENING screen === */
+.awards-cinema {
+  min-height: 75vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 40px 20px;
+  position: relative;
+}
+.awards-cinema::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(183,28,44,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 20%, rgba(255,215,90,0.08) 0%, transparent 50%);
+  pointer-events: none;
+  animation: pulseSlow 6s ease-in-out infinite;
+}
+.cinema-eyebrow {
+  font-size: 12px; letter-spacing: 0.6em; font-weight: 700;
+  color: var(--accent); margin-bottom: 24px;
+  animation: fadeInUp 800ms ease-out both;
+}
+.cinema-title {
+  display: flex; flex-direction: column; gap: 4px;
+  font-weight: 900; letter-spacing: -0.01em;
+  line-height: 0.95; margin-bottom: 32px;
+}
+.cinema-line {
+  display: block;
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.line-1 {
+  font-size: 88px;
+  background: linear-gradient(90deg, #FFFFFF 0%, #FFFFFF 40%, #FFD75A 50%, #FFFFFF 60%, #FFFFFF 100%);
+  animation: shimmer 4s linear infinite, lineSlideDown 900ms cubic-bezier(0.16,1,0.3,1) both;
+}
+.line-2 {
+  font-size: 64px;
+  background: linear-gradient(90deg, var(--accent) 0%, #FFD75A 50%, var(--accent) 100%);
+  animation: shimmer 4s linear 1s infinite, lineSlideUp 900ms cubic-bezier(0.16,1,0.3,1) 200ms both;
+}
+@keyframes lineSlideDown {
+  from { opacity: 0; transform: translateY(-30px); letter-spacing: 0.5em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.01em; }
+}
+@keyframes lineSlideUp {
+  from { opacity: 0; transform: translateY(30px); letter-spacing: 0.5em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.01em; }
+}
+.cinema-divider {
+  width: 80px; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: 8px 0 22px;
+  animation: fadeInUp 700ms 400ms ease-out both;
+}
+.cinema-meta {
+  font-size: 14px; letter-spacing: 0.35em; color: var(--text-muted);
+  margin-bottom: 60px;
+  animation: fadeInUp 700ms 600ms ease-out both;
+}
+.cinema-cta {
+  font-size: 18px; padding: 18px 44px;
+  letter-spacing: 0.25em; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent-lo));
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px rgba(183,28,44,0.15), 0 12px 40px rgba(183,28,44,0.4);
+  animation: ctaIn 600ms 1000ms cubic-bezier(0.34,1.56,0.64,1) both, ctaPulse 2.2s 1700ms ease-in-out infinite;
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.cinema-cta:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+  box-shadow: 0 0 0 6px rgba(183,28,44,0.2), 0 16px 50px rgba(183,28,44,0.6);
+}
+.cta-icon { font-size: 14px; }
+@keyframes ctaIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(183,28,44,0.15), 0 12px 40px rgba(183,28,44,0.4); }
+  50%      { box-shadow: 0 0 0 12px rgba(183,28,44,0.05), 0 16px 50px rgba(183,28,44,0.6); }
+}
+
 /* === Locked banner on Leaderboard === */
 .banner-locked {
   background: linear-gradient(135deg, rgba(183,28,44,0.15), rgba(217,161,59,0.08));
@@ -650,16 +734,16 @@ body[data-display-mode="true"] .overlay-name { font-size: 110px; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* === BGO: Stadium light beams === */
+/* === Stadium light beams (all categories, themed via --beam-color) === */
 .stadium-beam {
   position: absolute;
   top: -10%; left: 50%;
-  width: 80px; height: 140%;
-  background: linear-gradient(180deg, rgba(255,215,90,0) 0%, rgba(255,215,90,0.18) 30%, rgba(255,215,90,0.05) 100%);
+  width: 90px; height: 140%;
+  background: linear-gradient(180deg, transparent 0%, var(--beam-color, rgba(255,215,90,0.22)) 35%, transparent 100%);
   transform-origin: top center;
   transform: translateX(-50%) rotate(var(--angle));
-  animation: stadiumSwing 3.5s ease-in-out var(--delay) infinite alternate;
-  filter: blur(4px);
+  animation: stadiumSwing 3.2s ease-in-out var(--delay) infinite alternate;
+  filter: blur(5px);
 }
 @keyframes stadiumSwing {
   0%   { transform: translateX(-50%) rotate(calc(var(--angle) - 8deg)); }
@@ -749,6 +833,21 @@ body[data-display-mode="true"] .overlay-name { font-size: 110px; }
   0%   { transform: translateY(100%); opacity: 0; }
   60%  { opacity: 1; }
   100% { transform: translateY(-20%); opacity: 0; }
+}
+
+/* === Flying trophies (BGO finale) === */
+.flying-trophy {
+  position: absolute;
+  bottom: -10%; left: var(--left, 50%);
+  font-size: 38px;
+  animation: trophyFly var(--dur) ease-out both;
+  pointer-events: none;
+  text-shadow: 0 0 20px rgba(255,215,90,0.8);
+}
+@keyframes trophyFly {
+  0%   { transform: translateY(0) rotate(0); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translateY(-120vh) rotate(var(--rot)); opacity: 0; }
 }
 
 /* === Fireworks (BGO bonus) === */
