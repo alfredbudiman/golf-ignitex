@@ -67,10 +67,19 @@ input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   z-index: 10;
 }
 .header-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-logo { height: 32px; }
-.brand-text .title { font-size: 16px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
-.brand-text .meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand-logo-tile {
+  background: #FFFFFF;
+  padding: 8px 14px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0 0 1px rgba(183,28,44,0.25);
+}
+.brand-logo { height: 28px; display: block; }
+.brand-divider { width: 1px; height: 32px; background: var(--border); }
+.brand-text .title { font-size: 18px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.brand-text .meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
 
 .status-pill {
   font-size: 10px;

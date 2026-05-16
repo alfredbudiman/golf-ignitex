@@ -1,15 +1,18 @@
 export function renderHeader(state, onAction) {
   const status = state.tournament.status;
   const awardsReady = status === 'finalized';
+  const logoSrc = (typeof LOGO_ASSETS !== 'undefined' && LOGO_ASSETS['assets/ignitex-logo.png'])
+    || 'assets/ignitex-logo.png';
 
   return `
     <header class="header">
       <div class="header-top">
         <div class="brand">
-          <div class="brand-logo">⛳</div>
+          <div class="brand-logo-tile"><img src="${logoSrc}" alt="Ignitex" class="brand-logo"></div>
+          <div class="brand-divider"></div>
           <div class="brand-text">
-            <div class="title">The Ignitex Gobar</div>
-            <div class="meta">22 May 2026 · Modern Land</div>
+            <div class="title">GOBAR 2026</div>
+            <div class="meta">22 May 2026 · Modern Land Golf Club</div>
           </div>
         </div>
         <div class="header-actions">
