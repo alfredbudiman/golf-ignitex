@@ -62,6 +62,9 @@ function renderFinal(state) {
   const { peoriaHoles, results, flights } = state;
   if (!results) return '<p>No results yet.</p>';
 
+  const revealed = state.ui.revealedAwards || [];
+  const allRevealed = ['flightB','flightA','bno','bgo'].every(k => revealed.includes(k));
+
   const enrichRow = (r) => {
     if (!r) return null;
     const p = results.perPlayer.find(x => x.playerId === r.playerId);
@@ -79,14 +82,65 @@ function renderFinal(state) {
     .map((r, i) => {
       const f = flights.find(x => x.playerIds.includes(r.playerId));
       let badge = '';
-      if (r.playerId === results.bgo.playerId) badge = 'BGO 🏆';
-      if (r.playerId === results.bno.playerId) badge = badge ? `${badge}, BNO 🏆` : 'BNO 🏆';
-      if (!badge) {
-        if (results.flightA.find(x => x.playerId === r.playerId)) badge = 'Flight A';
-        else if (results.flightB.find(x => x.playerId === r.playerId)) badge = 'Flight B';
+      if (allRevealed) {
+        if (r.playerId === results.bgo.playerId) badge = 'BGO 🏆';
+        if (r.playerId === results.bno.playerId) badge = badge ? `${badge}, BNO 🏆` : 'BNO 🏆';
+        if (!badge) {
+          if (results.flightA.find(x => x.playerId === r.playerId)) badge = 'Flight A';
+          else if (results.flightB.find(x => x.playerId === r.playerId)) badge = 'Flight B';
+        }
       }
       return { ...r, rank: i + 1, flightName: f?.name || '—', badge };
     });
+
+  // If not all revealed, show locked banner + hide winner sections
+  if (!allRevealed) {
+    return `
+      <div class="banner banner-locked">
+        <strong>🔒 Awards Ceremony In Progress</strong>
+        Winners stay hidden until each category is revealed in the
+        <b><a href="#" data-action="goto-awards" style="color:var(--accent)">Awards tab</a></b>.
+        ${revealed.length}/4 revealed so far.
+      </div>
+
+      <section class="card peoria-holes-card">
+        <h2 class="card-title">🎲 Peoria Holes</h2>
+        <div class="peoria-display">
+          <span>Par 3: ${holeChips(peoriaHoles.par3, 0)}</span>
+          <span>Par 4: ${holeChips(peoriaHoles.par4, 2)}</span>
+          <span>Par 5: ${holeChips(peoriaHoles.par5, 4)}</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Full Standings (Net order)</h2>
+        <table class="leaderboard">
+          <thead><tr><th>R</th><th>Player</th><th>Flight</th><th>Gross</th><th>Hcp</th><th>Net</th></tr></thead>
+          <tbody>
+            ${fullStandings.map((r, i) => `
+              <tr style="animation-delay:${i * 22}ms">
+                <td class="rank">${r.rank}</td>
+                <td>${r.name}</td>
+                <td>${r.flightName}</td>
+                <td class="num">${r.gross}</td>
+                <td class="num">${r.handicap}</td>
+                <td class="num"><b>${r.net}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </section>
+
+      <div class="bottom-bar">
+        <div>
+          <button data-action="unlock-scoring">🔓 Unlock Scoring</button>
+        </div>
+        <div>
+          <button class="primary" data-action="goto-awards">🏆 Go to Awards Ceremony →</button>
+        </div>
+      </div>
+    `;
+  }
 
   return `
     <section class="card peoria-holes-card">

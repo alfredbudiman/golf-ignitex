@@ -206,7 +206,7 @@ function handleAction(action, el, e) {
         s.results = { perPlayer, ...flightSplit, flightStandings };
         s.tournament.status = 'finalized';
         s.ui.revealedAwards = [];
-        s.ui.activeTab = 'leaderboard';
+        s.ui.activeTab = 'awards';
       });
       break;
     }
