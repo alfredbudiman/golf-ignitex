@@ -1,5 +1,7 @@
-import { loadState, saveState, clearState, newId, MODERN_LAND_PARS } from './state.js';
+import { loadState, saveState, clearState, newId, MODERN_LAND_PARS, validateInput } from './state.js';
 import { generateDemoTournament, fillRandomScores } from './demo.js';
+import { parseScoreInput } from './format.js';
+import { capScore } from './peoria.js';
 import { render } from './render.js';
 
 let state = loadState();
@@ -14,6 +16,14 @@ function replace(newState) {
   state = newState;
   saveState(state);
   render(state);
+}
+
+function focusNextCell(el) {
+  const all = Array.from(document.querySelectorAll('[data-action="set-score"]'));
+  const idx = all.indexOf(el);
+  if (idx >= 0 && idx + 1 < all.length) {
+    setTimeout(() => all[idx + 1].focus(), 0);
+  }
 }
 
 function handleAction(action, el, e) {
@@ -82,6 +92,39 @@ function handleAction(action, el, e) {
     case 'start-tournament':
       update(s => { s.tournament.status = 'input'; s.ui.activeTab = 'input'; s.ui.activeInputFlight = s.flights[0]?.id || null; });
       break;
+    case 'select-input-flight':
+      update(s => { s.ui.activeInputFlight = el.dataset.flightId; });
+      break;
+    case 'edit-setup':
+      update(s => { s.ui.activeTab = 'setup'; s.tournament.status = 'setup'; });
+      break;
+    case 'set-score': {
+      const pid = el.dataset.playerId;
+      const hole = parseInt(el.dataset.hole, 10);
+      const over = parseScoreInput(el.value);
+      update(s => {
+        const player = s.players.find(p => p.id === pid);
+        if (!player) return;
+        if (over === null) { player.scores[hole] = null; return; }
+        const par = s.course.holes[hole].par;
+        const stroke = capScore(par, Math.max(1, par + over));
+        player.scores[hole] = stroke;
+      });
+      focusNextCell(el);
+      break;
+    }
+    case 'finalize-scoring': {
+      const v = validateInput(state);
+      if (!v.valid) {
+        const firstPid = Object.keys(v.emptyCellsBy)[0];
+        const firstHole = v.emptyCellsBy[firstPid][0];
+        alert(`Cannot finalize: ${v.errors.join('; ')}\n\nFirst missing: player ${firstPid} hole ${firstHole + 1}`);
+        return;
+      }
+      if (!confirm('Lock all scoring? You can still unlock from Leaderboard.')) return;
+      update(s => { s.tournament.status = 'locked'; s.ui.activeTab = 'leaderboard'; });
+      break;
+    }
   }
 }
 
@@ -104,7 +147,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('blur', (e) => {
   const action = e.target.dataset?.action;
-  if (['rename-flight','rename-player','set-tee-time','set-par'].includes(action)) {
+  if (['rename-flight','rename-player','set-tee-time','set-par','set-score'].includes(action)) {
     handleAction(action, e.target, e);
   }
 }, true);
@@ -113,7 +156,7 @@ document.addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-tab]');
   if (tabBtn) { handleAction('switch-tab', tabBtn, e); return; }
   const actionBtn = e.target.closest('[data-action]');
-  if (actionBtn && !['rename-flight','rename-player','set-tee-time','set-par','add-player-input'].includes(actionBtn.dataset.action)) {
+  if (actionBtn && !['rename-flight','rename-player','set-tee-time','set-par','add-player-input','set-score'].includes(actionBtn.dataset.action)) {
     handleAction(actionBtn.dataset.action, actionBtn, e);
   }
 });
