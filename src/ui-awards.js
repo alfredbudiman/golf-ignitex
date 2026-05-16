@@ -53,13 +53,15 @@ export function renderAwards(state) {
 
   // CINEMATIC OPENING SCREEN — no spoiler, no category mention
   if (showHero) {
+    const logoSrc = (typeof LOGO_ASSETS !== 'undefined' && LOGO_ASSETS['assets/ignitex-logo.png'])
+      || 'assets/ignitex-logo.png';
     return `
       <div class="awards-cinema">
         <div class="cinema-eyebrow">— GRAND CEREMONY —</div>
-        <h1 class="cinema-title">
-          <span class="cinema-line line-1">THE IGNITEX</span>
-          <span class="cinema-line line-2">GOLF TOURNAMENT</span>
-        </h1>
+        <div class="cinema-logo-tile">
+          <img src="${logoSrc}" alt="Ignitex" class="cinema-logo">
+        </div>
+        <h1 class="cinema-subtitle">GOLF TOURNAMENT</h1>
         <div class="cinema-divider"></div>
         <div class="cinema-meta">GOBAR · MODERN LAND GOLF CLUB · 22 MAY 2026</div>
         <button class="cinema-cta primary" data-action="reveal-next" data-key="${nextKey}">
@@ -163,9 +165,12 @@ export function playRevealAnimation(state, key, onComplete) {
       <div class="fx-layer-back"></div>
       <div class="fx-layer-mid"></div>
       <div class="overlay-spotlight" style="width:${cfg.spotlight}px;height:${cfg.spotlight}px"></div>
-      ${extras.includes('crown') ? '<div class="crown">👑</div>' : ''}
-      <div class="overlay-label">${LABELS[key].toUpperCase()}</div>
-      <div class="overlay-countdown" data-step="3">3</div>
+
+      <div class="big-title-intro ${isChampion ? 'mega' : ''}">${LABELS[key].toUpperCase()}</div>
+
+      ${extras.includes('crown') ? '<div class="crown" style="opacity:0">👑</div>' : ''}
+      <div class="overlay-label" style="opacity:0">${LABELS[key].toUpperCase()}</div>
+      <div class="overlay-countdown" data-step="3" style="opacity:0">3</div>
       <div class="overlay-name ${extras.includes('shimmerName') ? 'champion-name' : ''}" style="opacity:0">${data.name}</div>
       <div class="overlay-flight" style="opacity:0">${data.flightName}</div>
       <div class="overlay-stats" style="opacity:0">${stats}</div>
@@ -174,15 +179,33 @@ export function playRevealAnimation(state, key, onComplete) {
     </div>
   `;
 
+  const bigTitle  = overlay.querySelector('.big-title-intro');
+  const labelEl   = overlay.querySelector('.overlay-label');
   const countdown = overlay.querySelector('.overlay-countdown');
+  const crownEl   = overlay.querySelector('.crown');
   const nameEl    = overlay.querySelector('.overlay-name');
   const flightEl  = overlay.querySelector('.overlay-flight');
   const statsEl   = overlay.querySelector('.overlay-stats');
   const badgeEl   = overlay.querySelector('.champion-badge');
 
-  // Pre-effect (background mood) — runs immediately during countdown
+  // Pre-effect (background mood) — runs immediately
   spawnLights(overlay, theme);
 
+  // Phase 1: BIG TITLE intro (auto via CSS animation)
+  // Mega = 2600ms total (entrance 700, hold 1500, exit 400)
+  // Normal = 1900ms total (entrance 600, hold 1000, exit 300)
+  const bigTitleHold = isChampion ? 2600 : 1900;
+
+  setTimeout(() => {
+    // Phase 2: Bring in label + countdown for the reveal proper
+    if (bigTitle) bigTitle.style.display = 'none';
+    labelEl.style.opacity = '1';
+    countdown.style.opacity = '1';
+    if (crownEl) crownEl.style.opacity = '1';
+    startCountdownPhase();
+  }, bigTitleHold);
+
+  function startCountdownPhase() {
   let step = 3;
   const tick = setInterval(() => {
     step--;
@@ -223,6 +246,7 @@ export function playRevealAnimation(state, key, onComplete) {
       });
     }
   }, 800);
+  } // end startCountdownPhase
 }
 
 // ---------- Effect builders (used by all categories) ----------

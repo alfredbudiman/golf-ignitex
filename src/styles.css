@@ -535,34 +535,32 @@ body[data-display-mode="true"] .overlay-name { font-size: 110px; }
   color: var(--accent); margin-bottom: 24px;
   animation: fadeInUp 800ms ease-out both;
 }
-.cinema-title {
-  display: flex; flex-direction: column; gap: 4px;
-  font-weight: 900; letter-spacing: -0.01em;
-  line-height: 0.95; margin-bottom: 32px;
+.cinema-logo-tile {
+  background: #FFFFFF;
+  padding: 40px 60px;
+  border-radius: 10px;
+  margin-bottom: 28px;
+  box-shadow:
+    0 0 0 1px rgba(183,28,44,0.5),
+    0 0 0 6px rgba(183,28,44,0.12),
+    0 24px 70px rgba(183,28,44,0.35);
+  animation: cardLand 900ms cubic-bezier(0.34,1.56,0.64,1) both,
+             cinemaTilePulse 3s ease-in-out 1s infinite;
 }
-.cinema-line {
-  display: block;
-  background-size: 200% 100%;
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent;
+.cinema-logo { height: 120px; max-width: 100%; display: block; }
+@keyframes cinemaTilePulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(183,28,44,0.5), 0 0 0 6px rgba(183,28,44,0.12), 0 24px 70px rgba(183,28,44,0.35); }
+  50%      { box-shadow: 0 0 0 1px rgba(183,28,44,0.7), 0 0 0 14px rgba(183,28,44,0.06), 0 28px 90px rgba(183,28,44,0.55); }
 }
-.line-1 {
-  font-size: 88px;
-  background: linear-gradient(90deg, #FFFFFF 0%, #FFFFFF 40%, #FFD75A 50%, #FFFFFF 60%, #FFFFFF 100%);
-  animation: shimmer 4s linear infinite, lineSlideDown 900ms cubic-bezier(0.16,1,0.3,1) both;
-}
-.line-2 {
-  font-size: 64px;
+.cinema-subtitle {
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
   background: linear-gradient(90deg, var(--accent) 0%, #FFD75A 50%, var(--accent) 100%);
-  animation: shimmer 4s linear 1s infinite, lineSlideUp 900ms cubic-bezier(0.16,1,0.3,1) 200ms both;
-}
-@keyframes lineSlideDown {
-  from { opacity: 0; transform: translateY(-30px); letter-spacing: 0.5em; }
-  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.01em; }
-}
-@keyframes lineSlideUp {
-  from { opacity: 0; transform: translateY(30px); letter-spacing: 0.5em; }
-  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.01em; }
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 4s linear infinite, fadeInUp 900ms 300ms cubic-bezier(0.16,1,0.3,1) both;
 }
 .cinema-divider {
   width: 80px; height: 3px;
@@ -644,6 +642,60 @@ body[data-display-mode="true"] .overlay-name { font-size: 110px; }
 @keyframes crownFloat {
   0%, 100% { transform: translateX(-50%) translateY(0) rotate(-3deg); }
   50%      { transform: translateX(-50%) translateY(-6px) rotate(3deg); }
+}
+
+/* === Big title intro (per-reveal pre-name) === */
+.big-title-intro {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  font-size: 96px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+  text-align: center;
+  color: var(--text);
+  z-index: 5;
+  white-space: nowrap;
+  max-width: 95vw;
+  text-shadow:
+    0 0 40px rgba(255,255,255,0.4),
+    0 0 80px rgba(183,28,44,0.5);
+  animation: bigTitleIn 700ms cubic-bezier(0.34,1.56,0.64,1) both,
+             bigTitleOut 400ms cubic-bezier(0.6,0,0.4,1) 1500ms both;
+  pointer-events: none;
+}
+.overlay-content.theme-emerald .big-title-intro { color: #FFFFFF; text-shadow: 0 0 40px rgba(60,203,127,0.6), 0 0 80px rgba(60,203,127,0.4); }
+.overlay-content.theme-silver  .big-title-intro { color: #FFFFFF; text-shadow: 0 0 40px rgba(220,220,235,0.7), 0 0 80px rgba(220,220,235,0.4); }
+.overlay-content.theme-gold    .big-title-intro { color: #FFD75A; text-shadow: 0 0 40px rgba(255,215,90,0.7), 0 0 80px rgba(255,215,90,0.4); }
+.overlay-content.theme-champion .big-title-intro {
+  font-size: 110px;
+  background: linear-gradient(90deg, #FFD75A 0%, #FFFFFF 30%, #B71C2C 50%, #FFFFFF 70%, #FFD75A 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 30px rgba(255,215,90,0.8)) drop-shadow(0 0 60px rgba(183,28,44,0.6));
+  animation:
+    bigTitleIn 800ms cubic-bezier(0.34,1.56,0.64,1) both,
+    goldShimmer 2.5s linear infinite,
+    bigTitleOut 500ms cubic-bezier(0.6,0,0.4,1) 2100ms both,
+    titleThunder 1500ms 800ms ease-in-out 1;
+}
+.big-title-intro.mega {
+  letter-spacing: 0.02em;
+}
+@keyframes bigTitleIn {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3) rotate(-4deg); letter-spacing: 0.3em; }
+  60%  { opacity: 1; transform: translate(-50%,-50%) scale(1.08) rotate(1deg); }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0); letter-spacing: -0.01em; }
+}
+@keyframes bigTitleOut {
+  0%   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-150%) scale(0.65); }
+}
+@keyframes titleThunder {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(255,215,90,0.8)) drop-shadow(0 0 60px rgba(183,28,44,0.6)); }
+  20%, 60% { filter: drop-shadow(0 0 60px rgba(255,255,255,1)) drop-shadow(0 0 120px rgba(255,215,90,1)); }
 }
 
 /* === Overlay FX layers === */
