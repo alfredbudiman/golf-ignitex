@@ -4,6 +4,7 @@ import { parseScoreInput } from './format.js';
 import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './peoria.js';
 import { render } from './render.js';
 import { playRevealAnimation } from './ui-awards.js';
+import { generateSnapshotHtml, downloadSnapshot } from './snapshot.js';
 
 let state = loadState();
 
@@ -181,6 +182,10 @@ function handleAction(action, el, e) {
     case 'replay-awards':
       update(s => { s.ui.revealedAwards = []; });
       break;
+    case 'save-snapshot': {
+      generateSnapshotHtml(state).then(html => downloadSnapshot(state, html));
+      break;
+    }
   }
 }
 
