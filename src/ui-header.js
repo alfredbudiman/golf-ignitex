@@ -14,7 +14,7 @@ export function renderHeader(state, onAction) {
         </div>
         <div class="header-actions">
           <span class="status-pill" data-status="${status}">${statusLabel(status)}</span>
-          <button class="display-toggle" data-action="toggle-display"><span class="label-show">Display Mode</span><span class="label-hide" style="display:none">Exit Display</span></button>
+          <button class="display-toggle" data-action="toggle-display">${state.ui.displayMode ? 'Exit Display (ESC)' : 'Display Mode'}</button>
           <button class="save-btn" data-action="save-snapshot" ${state.players.length === 0 ? 'disabled' : ''}>Save Snapshot</button>
           <button class="kebab" data-action="open-menu">⋮</button>
         </div>

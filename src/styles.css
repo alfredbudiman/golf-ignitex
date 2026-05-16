@@ -339,3 +339,13 @@ button.big { font-size: 18px; padding: 16px 36px; letter-spacing: 0.1em; }
   0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
   100% { transform: translate(var(--x), 100vh) rotate(720deg); opacity: 0; }
 }
+
+/* === Display Mode font scaling === */
+body[data-display-mode="true"] .winner-name { font-size: 36px; }
+body[data-display-mode="true"] .winner-stats .stat-val { font-size: 32px; }
+body[data-display-mode="true"] .leaderboard { font-size: 18px; }
+body[data-display-mode="true"] .leaderboard th { font-size: 13px; }
+body[data-display-mode="true"] .leaderboard td { padding: 16px 22px; }
+body[data-display-mode="true"] .peoria-display { font-size: 18px; gap: 48px; }
+body[data-display-mode="true"] .header-actions .save-btn,
+body[data-display-mode="true"] .header-actions .kebab { display: none; }

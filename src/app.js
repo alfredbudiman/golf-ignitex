@@ -190,6 +190,11 @@ function handleAction(action, el, e) {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.ui.displayMode) {
+    update(s => { s.ui.displayMode = false; });
+    document.body.dataset.displayMode = 'false';
+    return;
+  }
   if (e.key !== 'Enter') return;
   const t = e.target;
   if (t.dataset.action === 'add-player-input') {
