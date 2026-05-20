@@ -38,7 +38,7 @@ export function generateDemoTournament() {
         const stroke = h.par + randomOver();
         return capScore(h.par, Math.max(1, stroke));
       });
-      players.push({ id: playerId, name, scores });
+      players.push({ id: playerId, name, scores, dnf: false });
       playerIds.push(playerId);
     }
     flights.push({

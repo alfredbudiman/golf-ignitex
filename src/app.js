@@ -4,6 +4,7 @@ import { parseScoreInput, formatOver, overColor } from './format.js';
 import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './peoria.js';
 import { render } from './render.js';
 import { playRevealAnimation } from './ui-awards.js';
+import { playPeoriaSpinner } from './ui-peoria-spin.js';
 import { generateSnapshotHtml, downloadSnapshot } from './snapshot.js';
 
 let state = loadState();
@@ -44,7 +45,7 @@ function updateRowTotals(playerId) {
 function updateInputProgress() {
   const totalPlayers = state.players.length;
   if (totalPlayers === 0) return;
-  const completePlayers = state.players.filter(p => p.scores.every(s => s !== null && s !== undefined)).length;
+  const completePlayers = state.players.filter(p => p.dnf || p.scores.every(s => s !== null && s !== undefined)).length;
 
   const fill = document.querySelector('.progress-fill');
   if (fill) fill.style.width = `${(completePlayers / totalPlayers) * 100}%`;
@@ -54,7 +55,7 @@ function updateInputProgress() {
   state.flights.forEach(f => {
     const complete = f.playerIds.every(pid => {
       const p = state.players.find(p => p.id === pid);
-      return p?.scores.every(s => s !== null && s !== undefined);
+      return p?.dnf || p?.scores.every(s => s !== null && s !== undefined);
     });
     const pill = document.querySelector(`.flight-pill[data-flight-id="${f.id}"]`);
     if (pill) pill.textContent = `${complete ? '✓ ' : ''}${f.name}`;
@@ -131,6 +132,11 @@ function handleAction(action, el, e) {
       });
       break;
     }
+    case 'toggle-dnf': {
+      const pid = el.dataset.playerId;
+      update(s => { const p = s.players.find(p => p.id === pid); if (p) p.dnf = !p.dnf; });
+      break;
+    }
     case 'demo-tournament':
       if (confirm('Replace current data with demo tournament?')) replace(generateDemoTournament());
       break;
@@ -200,18 +206,23 @@ function handleAction(action, el, e) {
       break;
     }
     case 'randomize-peoria': {
-      update(s => {
-        s.peoriaHoles = pickPeoriaHoles(s.course.holes, Math.random);
-        const perPlayer = s.players.map(p => {
-          const r = computePlayerResult(p, s.course.holes, s.peoriaHoles);
-          return { playerId: p.id, name: p.name, ...r };
+      const peoriaHoles = pickPeoriaHoles(state.course.holes, Math.random);
+      // Slot-machine reveal of the 6 holes, then compute & jump to Awards.
+      playPeoriaSpinner(state, peoriaHoles, () => {
+        update(s => {
+          s.peoriaHoles = peoriaHoles;
+          // DNF players are excluded from all scoring, prizes, and flight standings.
+          const perPlayer = s.players.filter(p => !p.dnf).map(p => {
+            const r = computePlayerResult(p, s.course.holes, s.peoriaHoles);
+            return { playerId: p.id, name: p.name, ...r };
+          });
+          const flightSplit = splitFlights(perPlayer);
+          const flightStandings = computeFlightStandings(s.flights, perPlayer);
+          s.results = { perPlayer, ...flightSplit, flightStandings };
+          s.tournament.status = 'finalized';
+          s.ui.revealedAwards = [];
+          s.ui.activeTab = 'awards';
         });
-        const flightSplit = splitFlights(perPlayer);
-        const flightStandings = computeFlightStandings(s.flights, perPlayer);
-        s.results = { perPlayer, ...flightSplit, flightStandings };
-        s.tournament.status = 'finalized';
-        s.ui.revealedAwards = [];
-        s.ui.activeTab = 'awards';
       });
       break;
     }

@@ -48,6 +48,7 @@ export async function generateSnapshotHtml(state) {
     fetchTextFile('src/ui-input.js'),
     fetchTextFile('src/ui-leaderboard.js'),
     fetchTextFile('src/ui-awards.js'),
+    fetchTextFile('src/ui-peoria-spin.js'),
     fetchTextFile('src/render.js'),
     fetchTextFile('src/app.js'),
   ]);

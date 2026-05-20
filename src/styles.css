@@ -1739,3 +1739,92 @@ body[data-display-mode="true"] .overlay-stats .stat-val { font-size: clamp(36px,
 .awards-complete-actions {
   display: flex; gap: 10px; justify-content: center; margin-top: 16px;
 }
+
+/* ---------- DNF (Did Not Finish) ---------- */
+.dnf-toggle {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.dnf-toggle.is-dnf { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dnf-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 5px;
+  background: rgba(183,28,44,0.18);
+  color: var(--accent);
+  border: 1px solid rgba(183,28,44,0.5);
+}
+.score-grid tr.player-dnf .score-cell,
+.score-grid tr.player-dnf .sum,
+.leaderboard tr.player-dnf td { opacity: 0.45; }
+.score-grid tr.player-dnf .player-name { text-decoration: line-through; opacity: 0.7; }
+.dnf-note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---------- Peoria draw spinner ---------- */
+.peoria-spin-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 22px;
+  background: radial-gradient(circle at 50% 35%, #1a2230 0%, #0a0d14 70%);
+  opacity: 0; transition: opacity 360ms ease;
+}
+.peoria-spin-overlay.active { opacity: 1; }
+.peoria-spin-overlay.closing { opacity: 0; }
+.peoria-spin-overlay .ps-eyebrow {
+  font-size: 12px; letter-spacing: 0.4em; color: var(--text-muted); text-transform: uppercase;
+}
+.peoria-spin-overlay .ps-title {
+  font-size: clamp(26px, 5vw, 46px); margin: 0; color: #fff; letter-spacing: 0.04em;
+  text-shadow: 0 0 24px rgba(255,215,90,0.35);
+}
+.peoria-spin-overlay .ps-groups { display: flex; gap: clamp(20px, 5vw, 64px); flex-wrap: wrap; justify-content: center; }
+.peoria-spin-overlay .ps-group {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  animation: fadeInUp 420ms ease-out both; animation-delay: calc(var(--gi) * 90ms);
+}
+.peoria-spin-overlay .ps-group-label {
+  font-size: 15px; font-weight: 700; letter-spacing: 0.2em; color: var(--accent-2, #FFD75A);
+}
+.peoria-spin-overlay .ps-reels { display: flex; gap: 14px; }
+.peoria-spin-overlay .ps-reel {
+  width: clamp(64px, 12vw, 96px); height: clamp(80px, 15vw, 120px);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #141a26 0%, #0c1018 100%);
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 6px 18px rgba(0,0,0,0.6), 0 6px 22px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.peoria-spin-overlay .ps-num {
+  font-family: var(--font-mono); font-weight: 800;
+  font-size: clamp(34px, 7vw, 58px); color: #e8edf6;
+  filter: blur(0.6px); opacity: 0.85;
+}
+.peoria-spin-overlay .ps-reel.locked {
+  border-color: #FFD75A;
+  box-shadow: inset 0 4px 14px rgba(0,0,0,0.5), 0 0 26px rgba(255,215,90,0.55);
+}
+.peoria-spin-overlay .ps-reel.locked .ps-num { filter: none; opacity: 1; color: #FFD75A; }
+.peoria-spin-overlay .ps-reel.pop { animation: psPop 420ms cubic-bezier(0.2,1.4,0.4,1); }
+.peoria-spin-overlay.all-locked .ps-title { animation: psBounce 520ms ease; }
+.peoria-spin-overlay .ps-caption { font-size: 14px; color: var(--text-muted); letter-spacing: 0.05em; }
+@keyframes psPop { 0% { transform: scale(1.28); } 60% { transform: scale(0.94); } 100% { transform: scale(1); } }
+@keyframes psBounce { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .peoria-spin-overlay, .peoria-spin-overlay .ps-group { animation: none; transition: opacity 200ms ease; }
+  .peoria-spin-overlay .ps-reel.pop { animation: none; }
+}

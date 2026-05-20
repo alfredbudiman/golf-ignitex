@@ -10,7 +10,7 @@ export function renderInput(state) {
   const activeFlight = state.flights.find(f => f.id === activeFlightId);
 
   const totalPlayers = state.players.length;
-  const completePlayers = state.players.filter(p => p.scores.every(s => s !== null && s !== undefined)).length;
+  const completePlayers = state.players.filter(p => p.dnf || p.scores.every(s => s !== null && s !== undefined)).length;
 
   return `
     <div class="input-progress">
@@ -22,7 +22,7 @@ export function renderInput(state) {
       ${state.flights.map(f => {
         const complete = f.playerIds.every(pid => {
           const p = state.players.find(p => p.id === pid);
-          return p?.scores.every(s => s !== null && s !== undefined);
+          return p?.dnf || p?.scores.every(s => s !== null && s !== undefined);
         });
         const isActive = f.id === activeFlightId;
         return `<button class="flight-pill" data-action="select-input-flight" data-flight-id="${f.id}" data-active="${isActive}">
@@ -84,9 +84,14 @@ function renderPlayerRow(player, holes) {
   const out = sumRange(player.scores, holes, 0, 9);
   const inSum = sumRange(player.scores, holes, 9, 18);
   const tot = out + inSum;
+  const dnf = !!player.dnf;
   return `
-    <tr>
-      <th class="player-col">${player.name}</th>
+    <tr class="${dnf ? 'player-dnf' : ''}">
+      <th class="player-col">
+        <span class="player-name">${player.name}</span>
+        ${dnf ? '<span class="dnf-badge">DNF</span>' : ''}
+        <button class="dnf-toggle ${dnf ? 'is-dnf' : ''}" data-action="toggle-dnf" data-player-id="${player.id}" title="DNF tidak dihitung dalam skor, hadiah, atau best flight">${dnf ? '↩ Undo DNF' : 'Mark DNF'}</button>
+      </th>
       ${cells.join('')}
       <td class="sum">${formatSum(out, 36)}</td>
       <td class="sum">${formatSum(inSum, 36)}</td>

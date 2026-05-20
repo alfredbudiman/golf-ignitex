@@ -3,4 +3,5 @@
 .claude/
 snapshots/
 node_modules/
+.npm-cache/
 dist/

@@ -14,8 +14,9 @@ function renderProvisional(state) {
     const filled = p.scores.filter(s => s != null).length;
     const gross = computeGross(p.scores);
     const flight = state.flights.find(f => f.playerIds.includes(p.id));
-    return { name: p.name, flightName: flight?.name || '—', filled, gross };
+    return { name: p.name, flightName: flight?.name || '—', filled, gross, dnf: !!p.dnf };
   }).sort((a, b) => {
+    if (a.dnf !== b.dnf) return a.dnf ? 1 : -1;   // DNF players sink to the bottom
     if (a.filled !== b.filled) return b.filled - a.filled;
     return a.gross - b.gross;
   });
@@ -33,13 +34,13 @@ function renderProvisional(state) {
       </thead>
       <tbody>
         ${rows.map((r, i) => `
-          <tr>
-            <td class="rank">${i + 1}</td>
-            <td>${r.name}</td>
+          <tr class="${r.dnf ? 'player-dnf' : ''}">
+            <td class="rank">${r.dnf ? '—' : i + 1}</td>
+            <td>${r.name}${r.dnf ? ' <span class="dnf-badge">DNF</span>' : ''}</td>
             <td>${r.flightName}</td>
             <td>${r.filled}/18</td>
             <td class="num"><b>${r.gross}</b></td>
-            <td class="num">${r.filled === 18 ? formatOverSimple(r.gross - par) : '—'}</td>
+            <td class="num">${r.dnf ? '—' : (r.filled === 18 ? formatOverSimple(r.gross - par) : '—')}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -202,6 +203,11 @@ function renderFinal(state) {
           `).join('')}
         </tbody>
       </table>
+      ${(() => {
+        const dnf = state.players.filter(p => p.dnf);
+        if (dnf.length === 0) return '';
+        return `<p class="dnf-note">DNF (tidak dihitung dalam skor, hadiah & best flight): ${dnf.map(p => p.name).join(', ')}</p>`;
+      })()}
     </section>
 
     <section class="card">

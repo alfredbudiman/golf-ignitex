@@ -32,15 +32,42 @@ export function createEmptyState() {
   };
 }
 
+// Default roster — editable on the Setup tab. Used on a fresh load (no saved data)
+// and after "Clear All Data". Flights 1 & 3 have 5 players, 2 & 4 have 4.
+export const DEFAULT_FLIGHTS = [
+  { name: 'Flight 1', players: ['Grady E', 'Josh', 'Jeshua E', 'Lukas B', 'Wawan S'] },
+  { name: 'Flight 2', players: ['Alvin S', 'Yosuan An', 'Andru T', 'Jeremy S'] },
+  { name: 'Flight 3', players: ['Alfred B', 'Irvin T', 'Mulyana', 'Raymond', 'Mario'] },
+  { name: 'Flight 4', players: ['Ivan DB', 'Ade', 'Iman N', 'Hendra'] },
+];
+
+export function createDefaultState() {
+  const state = createEmptyState();
+  const flights = [];
+  const players = [];
+  DEFAULT_FLIGHTS.forEach((f, fi) => {
+    const playerIds = [];
+    f.players.forEach((name, pi) => {
+      const id = `p_default_${fi + 1}_${pi + 1}`;
+      players.push({ id, name, scores: Array(18).fill(null), dnf: false });
+      playerIds.push(id);
+    });
+    flights.push({ id: `f_default_${fi + 1}`, name: f.name, teeTime: '', playerIds });
+  });
+  state.flights = flights;
+  state.players = players;
+  return state;
+}
+
 export function loadState() {
-  if (typeof localStorage === 'undefined') return createEmptyState();
+  if (typeof localStorage === 'undefined') return createDefaultState();
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return createEmptyState();
+  if (!raw) return createDefaultState();
   try {
     const parsed = JSON.parse(raw);
     return { ...createEmptyState(), ...parsed };
   } catch {
-    return createEmptyState();
+    return createDefaultState();
   }
 }
 
@@ -71,6 +98,7 @@ export function validateInput(state) {
   const errors = [];
   const emptyCellsBy = {};
   for (const player of state.players) {
+    if (player.dnf) continue;  // DNF players excluded — partial scores are OK for them
     const empties = [];
     for (let i = 0; i < 18; i++) {
       if (player.scores[i] === null || player.scores[i] === undefined) empties.push(i);

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  createEmptyState, validateSetup, validateInput,
+  createEmptyState, createDefaultState, DEFAULT_FLIGHTS, validateSetup, validateInput,
   MODERN_LAND_PARS, getPlayerFlight, newId
 } from '../src/state.js';
 
@@ -17,6 +17,26 @@ describe('createEmptyState', () => {
     expect(s.players).toEqual([]);
     expect(s.peoriaHoles).toBeNull();
     expect(s.results).toBeNull();
+  });
+});
+
+describe('createDefaultState', () => {
+  it('builds the default roster of 4 flights', () => {
+    const s = createDefaultState();
+    expect(s.flights).toHaveLength(4);
+    expect(s.tournament.status).toBe('setup');
+    // Flights 1 & 3 have 5 players, 2 & 4 have 4 → 18 players total
+    expect(s.players).toHaveLength(18);
+    DEFAULT_FLIGHTS.forEach((f, i) => {
+      expect(s.flights[i].name).toBe(f.name);
+      expect(s.flights[i].playerIds).toHaveLength(f.players.length);
+    });
+    expect(s.players[0].name).toBe('Grady E');
+    s.players.forEach(p => expect(p.dnf).toBe(false));
+  });
+
+  it('passes setup validation out of the box', () => {
+    expect(validateSetup(createDefaultState()).valid).toBe(true);
   });
 });
 
@@ -87,6 +107,19 @@ describe('validateInput', () => {
     state.flights = [{ id: 'f1', name: 'F1', playerIds: ['p1'] }];
     state.players = [{ id: 'p1', name: 'A', scores: fullScores }];
     expect(validateInput(state).valid).toBe(true);
+  });
+
+  it('ignores DNF players with incomplete scores', () => {
+    const state = createEmptyState();
+    const fullScores = [4,4,3,4,5,3,4,4,4,4,3,4,4,5,4,4,3,5];
+    state.flights = [{ id: 'f1', name: 'F1', playerIds: ['p1','p2'] }];
+    state.players = [
+      { id: 'p1', name: 'A', scores: fullScores },
+      { id: 'p2', name: 'B', scores: [4,4,null,...Array(15).fill(null)], dnf: true }
+    ];
+    const r = validateInput(state);
+    expect(r.valid).toBe(true);
+    expect(r.emptyCellsBy.p2).toBeUndefined();
   });
 });
 
