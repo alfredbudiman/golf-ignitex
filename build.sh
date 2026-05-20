@@ -9,7 +9,7 @@ STYLES=$(cat "$ROOT/src/styles.css")
 
 # Concat and strip ESM imports/exports from JS modules in dependency order
 JS=""
-for f in format peoria state demo snapshot ui-header ui-setup ui-input ui-leaderboard ui-awards ui-peoria-spin render app; do
+for f in format audio peoria state demo snapshot ui-header ui-setup ui-input ui-leaderboard ui-awards ui-peoria-spin render app; do
   CONTENT=$(cat "$ROOT/src/$f.js" | sed -E 's/^[[:space:]]*import [^;]+;[[:space:]]*$//' | sed -E 's/^[[:space:]]*export[[:space:]]+//' | sed -E 's#</script>#<\\/script>#g')
   JS="$JS
 

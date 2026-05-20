@@ -57,6 +57,7 @@ open dist/index.html
 - **Tie-breaker:** Lower handicap wins; if still tied, alphabetical name
 - **Class A/B:** After excluding BGO+BNO winners, split by **handicap** — lower-handicap half = Class A, higher-handicap half = Class B. Ranking/winner **within** each class is by lowest net.
 - **DNF:** Players marked DNF may submit partial scores but are excluded from net/handicap, all prizes, and the best-flight (avg-net) standings.
+- **Sound:** Synthesized Web Audio SFX play during the Peoria draw (ticking + lock dings) and award reveals (countdown beeps, riser, fanfare + applause; bigger fanfare for the Champion). Toggle with the 🔊/🔇 button in the header (preference saved). No audio files required.
 - **Prizes:** BGO, BNO, Class A 1st, Class B 1st (no double prizes)
 
 ## Troubleshooting

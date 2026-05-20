@@ -39,6 +39,7 @@ export async function generateSnapshotHtml(state) {
 
   const scripts = await Promise.all([
     fetchTextFile('src/format.js'),
+    fetchTextFile('src/audio.js'),
     fetchTextFile('src/peoria.js'),
     fetchTextFile('src/state.js'),
     fetchTextFile('src/demo.js'),

@@ -1,6 +1,9 @@
+import { isMuted } from './audio.js';
+
 export function renderHeader(state, onAction) {
   const status = state.tournament.status;
   const awardsReady = status === 'finalized';
+  const muted = isMuted();
   const logoSrc = (typeof LOGO_ASSETS !== 'undefined' && LOGO_ASSETS['assets/ignitex-logo.png'])
     || 'assets/ignitex-logo.png';
 
@@ -17,6 +20,7 @@ export function renderHeader(state, onAction) {
         </div>
         <div class="header-actions">
           <span class="status-pill" data-status="${status}">${statusLabel(status)}</span>
+          <button class="mute-toggle" data-action="toggle-mute" title="${muted ? 'Suara mati — klik untuk nyalakan' : 'Suara nyala — klik untuk matikan'}" aria-label="Toggle sound">${muted ? '🔇' : '🔊'}</button>
           <button class="display-toggle" data-action="toggle-display">${state.ui.displayMode ? 'Exit Display (ESC)' : 'Display Mode'}</button>
           <button class="save-btn" data-action="save-snapshot" ${state.players.length === 0 ? 'disabled' : ''}>Save Snapshot</button>
           <button class="kebab" data-action="open-menu">⋮</button>

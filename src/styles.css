@@ -1740,6 +1740,9 @@ body[data-display-mode="true"] .overlay-stats .stat-val { font-size: clamp(36px,
   display: flex; gap: 10px; justify-content: center; margin-top: 16px;
 }
 
+/* Sound toggle in header */
+.mute-toggle { padding: 6px 10px; font-size: 15px; line-height: 1; cursor: pointer; }
+
 /* ---------- DNF (Did Not Finish) ---------- */
 .dnf-toggle {
   margin-left: 8px;

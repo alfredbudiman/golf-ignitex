@@ -1,4 +1,5 @@
 import { categorizeHoles } from './peoria.js';
+import { tick, lockDing, chordResolve } from './audio.js';
 
 // Slot-machine reveal for the Peoria draw. Each par category (3 / 4 / 5)
 // resolves in turn: its category lights up, its two reels cycle random
@@ -57,6 +58,7 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
 
   if (reduce) {
     groupReels.flat().forEach(r => { r.numEl.textContent = r.target; r.el.classList.add('locked'); });
+    chordResolve();
     setTimeout(finish, 900);
     return;
   }
@@ -65,6 +67,9 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
   const spinHandles = groupReels.flat().map(r => setInterval(() => {
     r.numEl.textContent = r.pool[Math.floor(Math.random() * r.pool.length)];
   }, 75));
+
+  // Suspense ticking while reels are spinning.
+  const tickHandle = setInterval(tick, 110);
 
   // Timing (ms) — slower + staged so each par category reads clearly.
   const FIRST = 1500;     // delay before the first category resolves
@@ -97,7 +102,7 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
 
     reels.forEach((r, ri) => {
       const lockAt = groupStart + ri * REEL_GAP;
-      setTimeout(() => lockReel(r), lockAt);
+      setTimeout(() => { lockReel(r); lockDing(gi * 5 + ri * 2); }, lockAt);
       lastLockTimes.push(lockAt);
     });
 
@@ -113,7 +118,9 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
 
   const allLocked = lastLockTimes.length ? Math.max(...lastLockTimes) + 300 : 0;
   setTimeout(() => {
+    clearInterval(tickHandle);
     overlay.classList.add('all-locked');
+    chordResolve();
     if (caption) caption.textContent = '✓ Peoria holes terpilih!';
   }, allLocked);
 

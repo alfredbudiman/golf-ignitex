@@ -5,6 +5,7 @@ import { capScore, pickPeoriaHoles, computePlayerResult, splitFlights } from './
 import { render } from './render.js';
 import { playRevealAnimation } from './ui-awards.js';
 import { playPeoriaSpinner } from './ui-peoria-spin.js';
+import { unlockAudio, isMuted, setMuted, loadMutePref } from './audio.js';
 import { generateSnapshotHtml, downloadSnapshot } from './snapshot.js';
 
 let state = loadState();
@@ -90,6 +91,10 @@ function handleAction(action, el, e) {
     case 'toggle-display':
       update(s => { s.ui.displayMode = !s.ui.displayMode; });
       document.body.dataset.displayMode = String(state.ui.displayMode);
+      break;
+    case 'toggle-mute':
+      setMuted(!isMuted());
+      render(state);
       break;
     case 'set-par': {
       const i = parseInt(el.dataset.hole, 10);
@@ -308,6 +313,7 @@ document.addEventListener('blur', (e) => {
 }, true);
 
 document.addEventListener('click', (e) => {
+  unlockAudio();  // first user gesture unlocks the Web Audio context
   const tabBtn = e.target.closest('[data-tab]');
   if (tabBtn) { handleAction('switch-tab', tabBtn, e); return; }
   const actionBtn = e.target.closest('[data-action]');
@@ -316,6 +322,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
+loadMutePref();
 document.body.dataset.displayMode = String(state.ui.displayMode);
 render(state);
 

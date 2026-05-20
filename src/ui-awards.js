@@ -1,3 +1,5 @@
+import { countBeep, riser, applause, fanfare } from './audio.js';
+
 const SEQUENCE = ['flightB', 'flightA', 'bno', 'flightTeam', 'bgo'];
 const LABELS = {
   flightB:    'Flight B Winner',
@@ -343,6 +345,7 @@ export function playRevealAnimation(state, key, onComplete) {
     let step = 3;
     triggerCountdownAnim();
     spawnShockwave(overlay, theme);
+    countBeep(3);
     const tick = setInterval(() => {
       step--;
       if (step > 0) {
@@ -351,6 +354,7 @@ export function playRevealAnimation(state, key, onComplete) {
         triggerCountdownAnim();
         spawnShockwave(overlay, theme);
         triggerShake(overlay, 'tiny');
+        countBeep(step);
       } else {
         clearInterval(tick);
         countdown.style.opacity = '0';
@@ -364,6 +368,7 @@ export function playRevealAnimation(state, key, onComplete) {
         // PHASE A: headline counter fades in & counts up
         setTimeout(() => {
           headlineEl.style.opacity = '1';
+          riser(isChampion ? 2.6 : 1.8);
           const onLand = () => {
             headlineNumEl.classList.add('settled');
             triggerShake(overlay, isChampion ? 'big' : 'medium');
@@ -387,6 +392,8 @@ export function playRevealAnimation(state, key, onComplete) {
     revealNameByLetters(nameEl, () => {
       triggerShake(overlay, cfg.shake);
       spawnNameBurst(overlay, nameEl, theme);
+      fanfare(isChampion);
+      applause(isChampion ? 3.6 : 2.4, isChampion ? 1.5 : 1);
       if (flareEl) {
         flareEl.classList.add('sweep');
         setTimeout(() => flareEl.classList.remove('sweep'), 1800);

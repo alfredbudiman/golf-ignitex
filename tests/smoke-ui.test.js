@@ -4,6 +4,8 @@ import { renderInput } from '../src/ui-input.js';
 import { renderLeaderboard } from '../src/ui-leaderboard.js';
 import { playPeoriaSpinner } from '../src/ui-peoria-spin.js';
 import { pickPeoriaHoles } from '../src/peoria.js';
+import { renderHeader } from '../src/ui-header.js';
+import * as audio from '../src/audio.js';
 
 describe('UI smoke (DOM)', () => {
   beforeEach(() => { document.body.innerHTML = '<div id="app"></div>'; });
@@ -39,5 +41,27 @@ describe('UI smoke (DOM)', () => {
     vi.advanceTimersByTime(14000);
     expect(done).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
+  });
+
+  it('header renders a mute toggle', () => {
+    const s = createDefaultState();
+    expect(renderHeader(s)).toContain('data-action="toggle-mute"');
+  });
+
+  it('audio SFX no-op safely without Web Audio (no throw)', () => {
+    // happy-dom has no AudioContext → every SFX call should be a silent no-op
+    expect(() => {
+      audio.loadMutePref();
+      audio.unlockAudio();
+      audio.tick();
+      audio.lockDing(3);
+      audio.chordResolve();
+      audio.countBeep(3);
+      audio.riser(1.5);
+      audio.applause(1, 1);
+      audio.fanfare(true);
+      audio.setMuted(true);
+      audio.setMuted(false);
+    }).not.toThrow();
   });
 });
