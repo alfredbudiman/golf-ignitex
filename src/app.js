@@ -67,7 +67,12 @@ function computeFlightStandings(flights, perPlayer) {
     if (members.length === 0) return { flightId: f.id, name: f.name, avgNet: 0, totalNet: 0, memberCount: 0 };
     const totalNet = members.reduce((s, m) => s + m.net, 0);
     return { flightId: f.id, name: f.name, totalNet, memberCount: members.length, avgNet: totalNet / members.length };
-  }).sort((a, b) => a.avgNet - b.avgNet);
+  }).sort((a, b) => {
+    // Empty flights last (so the avg-net=0 case doesn't claim the win)
+    if (a.memberCount === 0) return 1;
+    if (b.memberCount === 0) return -1;
+    return a.avgNet - b.avgNet;
+  });
 }
 
 function replace(newState) {
@@ -222,6 +227,13 @@ function handleAction(action, el, e) {
       break;
     case 'goto-awards':
       update(s => { s.ui.activeTab = 'awards'; });
+      break;
+    case 'goto-leaderboard-peoria':
+      update(s => { s.ui.activeTab = 'leaderboard'; });
+      setTimeout(() => {
+        const target = document.querySelector('.peoria-verify-card');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
       break;
     case 'reveal-next': {
       const key = el.dataset.key;

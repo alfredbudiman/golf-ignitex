@@ -6,6 +6,9 @@ export function renderLeaderboard(state) {
 }
 
 function renderProvisional(state) {
+  // After Finalize, before Randomize: SEAL the standings so the BGO is a surprise.
+  if (state.tournament.status === 'locked') return renderSealed(state);
+
   const par = 72;
   const rows = state.players.map(p => {
     const filled = p.scores.filter(s => s != null).length;
@@ -18,7 +21,6 @@ function renderProvisional(state) {
   });
 
   const showFinalize = state.tournament.status === 'input';
-  const showRandomize = state.tournament.status === 'locked';
 
   return `
     <div class="banner">
@@ -47,7 +49,33 @@ function renderProvisional(state) {
       <div></div>
       <div>
         ${showFinalize ? '<button class="primary" data-action="finalize-scoring">🔒 Finalize Scoring</button>' : ''}
-        ${showRandomize ? '<button class="primary" data-action="randomize-peoria">🎲 Randomize Peoria Holes</button>' : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderSealed(state) {
+  const totalPlayers = state.players.length;
+  const flightCount = state.flights.length;
+  return `
+    <div class="banner banner-locked">
+      <strong>🔒 SCORING LOCKED</strong>
+      All scores submitted. Standings sealed to preserve the surprise.
+    </div>
+
+    <section class="card sealed-card">
+      <div class="sealed-emoji">🤫</div>
+      <h2 class="sealed-title">The Champion Awaits</h2>
+      <p class="sealed-sub">${totalPlayers} PLAYERS · ${flightCount} FLIGHTS · 4 AWARDS</p>
+      <p class="sealed-meta">Hit <b>Randomize Peoria Holes</b> to begin the reveal ceremony.</p>
+    </section>
+
+    <div class="bottom-bar">
+      <div>
+        <button data-action="edit-setup">← Back to Setup</button>
+      </div>
+      <div>
+        <button class="primary big pulse-cta" data-action="randomize-peoria">🎲 Randomize Peoria Holes</button>
       </div>
     </div>
   `;
@@ -93,14 +121,12 @@ function renderFinal(state) {
       return { ...r, rank: i + 1, flightName: f?.name || '—', badge };
     });
 
-  // If not all revealed, show locked banner + hide winner sections
+  // If not all revealed, sealed view — no standings table leaked
   if (!allRevealed) {
     return `
       <div class="banner banner-locked">
         <strong>🔒 Awards Ceremony In Progress</strong>
-        Winners stay hidden until each category is revealed in the
-        <b><a href="#" data-action="goto-awards" style="color:var(--accent)">Awards tab</a></b>.
-        ${revealed.length}/4 revealed so far.
+        ${revealed.length}/4 winners revealed. Full standings unlock once all four are announced.
       </div>
 
       <section class="card peoria-holes-card">
@@ -112,23 +138,11 @@ function renderFinal(state) {
         </div>
       </section>
 
-      <section class="card">
-        <h2 class="card-title">Full Standings (Net order)</h2>
-        <table class="leaderboard">
-          <thead><tr><th>R</th><th>Player</th><th>Flight</th><th>Gross</th><th>Hcp</th><th>Net</th></tr></thead>
-          <tbody>
-            ${fullStandings.map((r, i) => `
-              <tr style="animation-delay:${i * 22}ms">
-                <td class="rank">${r.rank}</td>
-                <td>${r.name}</td>
-                <td>${r.flightName}</td>
-                <td class="num">${r.gross}</td>
-                <td class="num">${r.handicap}</td>
-                <td class="num"><b>${r.net}</b></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <section class="card sealed-card">
+        <div class="sealed-emoji">🔐</div>
+        <h2 class="sealed-title">Standings Sealed</h2>
+        <p class="sealed-sub">${revealed.length}/4 WINNERS REVEALED</p>
+        <p class="sealed-meta">Return to the <b>Awards</b> tab to reveal the rest.</p>
       </section>
 
       <div class="bottom-bar">
@@ -136,7 +150,7 @@ function renderFinal(state) {
           <button data-action="unlock-scoring">🔓 Unlock Scoring</button>
         </div>
         <div>
-          <button class="primary" data-action="goto-awards">🏆 Go to Awards Ceremony →</button>
+          <button class="primary big pulse-cta" data-action="goto-awards">🏆 Back to Awards Ceremony →</button>
         </div>
       </div>
     `;
@@ -199,11 +213,11 @@ function renderFinal(state) {
           const maxA = Math.max(...avgs);
           const range = Math.max(1, maxA - minA);
           return results.flightStandings.map((s, i) => {
-            // Bar: longer = better (lower net) → invert
             const norm = s.memberCount === 0 ? 0 : 1 - ((s.avgNet - minA) / range);
+            const winnerClass = i === 0 && s.memberCount > 0 ? ' team-winner' : '';
             return `
-              <div class="flight-stat" style="animation: fadeInUp 360ms ease-out both; animation-delay: ${i * 60}ms">
-                <div class="rank">${i + 1}</div>
+              <div class="flight-stat${winnerClass}" style="animation: fadeInUp 360ms ease-out both; animation-delay: ${i * 60}ms">
+                <div class="rank">${i + 1}${i === 0 && s.memberCount > 0 ? ' 🏆' : ''}</div>
                 <div class="name">${s.name}</div>
                 <div class="bar-wrap"><div class="bar" style="width:${(0.15 + norm * 0.85) * 100}%; animation-delay:${100 + i * 60}ms"></div></div>
                 <div class="num"><b>${s.avgNet.toFixed(1)}</b> <span class="muted">(${s.memberCount})</span></div>
@@ -213,6 +227,8 @@ function renderFinal(state) {
         })()}
       </div>
     </section>
+
+    ${renderPeoriaVerification(state)}
 
     <div class="bottom-bar">
       <div>
@@ -257,4 +273,72 @@ function podiumList(rows) {
 
 function holeChips(holes, startDelay) {
   return holes.map((n, i) => `<span class="hole-chip" style="animation-delay:${(startDelay + i) * 90}ms">${n}</span>`).join('');
+}
+
+// Per-player breakdown of the 6 Peoria holes so observers can audit each handicap.
+function renderPeoriaVerification(state) {
+  const { players, course, peoriaHoles, results } = state;
+  if (!peoriaHoles?.all || !course?.holes) return '';
+
+  const peoriaIdx = peoriaHoles.all.map(n => n - 1);                       // 0-indexed hole indices
+  const playerById = (id) => players.find(p => p.id === id);
+  const rows = [...results.perPlayer]
+    .sort((a, b) => a.net - b.net || a.handicap - b.handicap || a.name.localeCompare(b.name))
+    .map(r => {
+      const p = playerById(r.playerId);
+      const cells = peoriaIdx.map(idx => {
+        const par = course.holes[idx].par;
+        const stroke = p ? p.scores[idx] : null;
+        const over = (stroke == null) ? 0 : (stroke - par);
+        const cls = over < 0 ? 'under' : over === 0 ? 'par' : over === 1 ? 'over-1' : 'over-2plus';
+        return { idx, par, stroke, over, cls };
+      });
+      const sumOver = cells.reduce((s, c) => s + c.over, 0);
+      return { name: r.name, gross: r.gross, handicap: r.handicap, cells, sumOver };
+    });
+
+  const headerCells = peoriaIdx.map(idx => {
+    const par = course.holes[idx].par;
+    return `<th><div class="ph-h">H${idx + 1}</div><div class="ph-p">PAR ${par}</div></th>`;
+  }).join('');
+
+  return `
+    <section class="card peoria-verify-card">
+      <h2 class="card-title">
+        🔍 Peoria Verification
+        <span class="muted" style="font-weight:400; letter-spacing:0.05em; text-transform:none;">
+          — Σ over · 3 = handicap. Highlighted holes contributed to each player's handicap.
+        </span>
+      </h2>
+      <div class="peoria-verify-wrap">
+        <table class="peoria-verify">
+          <thead>
+            <tr>
+              <th class="ph-name">Player</th>
+              ${headerCells}
+              <th class="ph-sum">Σ Over</th>
+              <th class="ph-hcp">× 3 = HCP</th>
+              <th class="ph-net">Net</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((r, i) => `
+              <tr style="animation-delay:${i * 18}ms">
+                <td class="ph-name">${r.name}</td>
+                ${r.cells.map(c => `
+                  <td class="ph-cell">
+                    <span class="ph-stroke ${c.cls}">${c.stroke == null ? '—' : c.stroke}</span>
+                    <span class="ph-over">${c.over === 0 ? 'E' : (c.over > 0 ? '+' + c.over : c.over)}</span>
+                  </td>
+                `).join('')}
+                <td class="ph-sum num"><b>${r.sumOver > 0 ? '+' + r.sumOver : r.sumOver}</b></td>
+                <td class="ph-hcp num"><b>${r.handicap}</b></td>
+                <td class="ph-net num">${r.gross} − ${r.handicap} = <b>${r.gross - r.handicap}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
 }
