@@ -1795,10 +1795,20 @@ body[data-display-mode="true"] .overlay-stats .stat-val { font-size: clamp(36px,
 .peoria-spin-overlay .ps-group {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
   animation: fadeInUp 420ms ease-out both; animation-delay: calc(var(--gi) * 90ms);
+  transition: opacity 300ms ease, transform 300ms ease;
 }
+/* While a category resolves, dim the ones still pending so the active one pops */
+.peoria-spin-overlay.staging .ps-group { opacity: 0.4; transform: scale(0.96); }
+.peoria-spin-overlay.staging .ps-group.done { opacity: 1; transform: scale(1); }
+.peoria-spin-overlay.staging .ps-group.resolving { opacity: 1; transform: scale(1.08); }
 .peoria-spin-overlay .ps-group-label {
   font-size: 15px; font-weight: 700; letter-spacing: 0.2em; color: var(--accent-2, #FFD75A);
+  transition: text-shadow 300ms ease;
 }
+.peoria-spin-overlay .ps-group.resolving .ps-group-label {
+  text-shadow: 0 0 18px rgba(255,215,90,0.8);
+}
+.peoria-spin-overlay .ps-group.done .ps-group-label::after { content: ' ✓'; color: #3CCB7F; }
 .peoria-spin-overlay .ps-reels { display: flex; gap: 14px; }
 .peoria-spin-overlay .ps-reel {
   width: clamp(64px, 12vw, 96px); height: clamp(80px, 15vw, 120px);

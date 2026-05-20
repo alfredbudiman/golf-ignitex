@@ -1,8 +1,9 @@
 import { categorizeHoles } from './peoria.js';
 
-// Slot-machine reveal for the Peoria draw: PAR 3 / PAR 4 / PAR 5 each spin two
-// reels that cycle random candidate holes, then lock onto the chosen holes one
-// by one. Calls onComplete() once all six have settled.
+// Slot-machine reveal for the Peoria draw. Each par category (3 / 4 / 5)
+// resolves in turn: its category lights up, its two reels cycle random
+// candidate holes and lock one by one, then the next category takes over.
+// Calls onComplete() once all six holes have settled.
 export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
   if (typeof document === 'undefined') { onComplete(); return; }
 
@@ -23,7 +24,7 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
     <h1 class="ps-title">🎲 RANDOM HOLE DRAW</h1>
     <div class="ps-groups">
       ${groups.map((g, gi) => `
-        <div class="ps-group" style="--gi:${gi}">
+        <div class="ps-group" data-g="${gi}" style="--gi:${gi}">
           <div class="ps-group-label">${g.label}</div>
           <div class="ps-reels">
             ${g.picks.map((_, ri) => `
@@ -38,49 +39,83 @@ export function playPeoriaSpinner(state, peoriaHoles, onComplete) {
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('active'));
 
-  // Flatten reels in spin order: par3 ×2, par4 ×2, par5 ×2
-  const reels = [];
-  groups.forEach((g, gi) => {
-    g.picks.forEach((target, ri) => {
+  const caption = overlay.querySelector('.ps-caption');
+  const groupEls = groups.map((_, gi) => overlay.querySelector(`.ps-group[data-g="${gi}"]`));
+
+  // Per-group reel descriptors
+  const groupReels = groups.map((g, gi) =>
+    g.picks.map((target, ri) => {
       const el = overlay.querySelector(`.ps-reel[data-g="${gi}"][data-r="${ri}"]`);
-      if (el) reels.push({ el, numEl: el.querySelector('.ps-num'), pool: g.pool, target });
-    });
-  });
+      return { el, numEl: el ? el.querySelector('.ps-num') : null, pool: g.pool, target };
+    }).filter(r => r.el)
+  );
 
   const finish = () => {
     overlay.classList.add('closing');
     setTimeout(() => { overlay.remove(); onComplete(); }, 480);
   };
 
-  if (reduce || reels.length === 0) {
-    reels.forEach(r => { r.numEl.textContent = r.target; r.el.classList.add('locked'); });
-    setTimeout(finish, reels.length ? 900 : 0);
+  if (reduce) {
+    groupReels.flat().forEach(r => { r.numEl.textContent = r.target; r.el.classList.add('locked'); });
+    setTimeout(finish, 900);
     return;
   }
 
-  // Every reel cycles random candidates until it is locked.
-  const intervals = reels.map(r => setInterval(() => {
+  // Every reel spins continuously until its own lock fires.
+  const spinHandles = groupReels.flat().map(r => setInterval(() => {
     r.numEl.textContent = r.pool[Math.floor(Math.random() * r.pool.length)];
-  }, 70));
+  }, 75));
 
-  const firstLock = 1100;
-  const lockGap = 520;
-  reels.forEach((r, i) => {
+  // Timing (ms) — slower + staged so each par category reads clearly.
+  const FIRST = 1500;     // delay before the first category resolves
+  const REEL_GAP = 750;   // gap between the two reels of one category locking
+  const GROUP_GAP = 1150; // pause after a category finishes before the next starts
+
+  const lockReel = (r) => {
+    if (spinHandles.length) {
+      const idx = groupReels.flat().indexOf(r);
+      clearInterval(spinHandles[idx]);
+    }
+    r.numEl.textContent = r.target;
+    r.el.classList.add('locked');
+    r.el.classList.remove('pop'); void r.el.offsetWidth; r.el.classList.add('pop');
+  };
+
+  // Once staging begins, pending categories dim so the active one stands out.
+  setTimeout(() => overlay.classList.add('staging'), Math.max(0, FIRST - 350));
+
+  let t = FIRST;
+  const lastLockTimes = [];
+  groups.forEach((g, gi) => {
+    const reels = groupReels[gi];
+    const groupStart = t;
+    // Highlight the category about to resolve
     setTimeout(() => {
-      clearInterval(intervals[i]);
-      r.numEl.textContent = r.target;
-      r.el.classList.add('locked');
-      // restart the lock pop animation
-      r.el.classList.remove('pop'); void r.el.offsetWidth; r.el.classList.add('pop');
-    }, firstLock + i * lockGap);
+      groupEls.forEach((el, i) => el.classList.toggle('resolving', i === gi));
+      if (caption) caption.textContent = `Mengundi ${g.label}…`;
+    }, Math.max(0, groupStart - 350));
+
+    reels.forEach((r, ri) => {
+      const lockAt = groupStart + ri * REEL_GAP;
+      setTimeout(() => lockReel(r), lockAt);
+      lastLockTimes.push(lockAt);
+    });
+
+    // Mark category done after its reels lock
+    const groupDone = groupStart + Math.max(0, reels.length - 1) * REEL_GAP + 250;
+    setTimeout(() => {
+      groupEls[gi].classList.remove('resolving');
+      groupEls[gi].classList.add('done');
+    }, groupDone);
+
+    t = groupStart + Math.max(0, reels.length - 1) * REEL_GAP + REEL_GAP + GROUP_GAP;
   });
 
-  const allLocked = firstLock + reels.length * lockGap;
+  const allLocked = lastLockTimes.length ? Math.max(...lastLockTimes) + 300 : 0;
   setTimeout(() => {
     overlay.classList.add('all-locked');
-    const cap = overlay.querySelector('.ps-caption');
-    if (cap) cap.textContent = '✓ Peoria holes terpilih!';
-  }, allLocked + 120);
+    if (caption) caption.textContent = '✓ Peoria holes terpilih!';
+  }, allLocked);
 
-  setTimeout(finish, allLocked + 1500);
+  setTimeout(finish, allLocked + 1600);
 }

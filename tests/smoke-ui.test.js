@@ -36,7 +36,7 @@ describe('UI smoke (DOM)', () => {
     playPeoriaSpinner(s, peoria, done);
     // overlay mounted with 6 reels
     expect(document.querySelectorAll('.ps-reel').length).toBe(6);
-    vi.advanceTimersByTime(10000);
+    vi.advanceTimersByTime(14000);
     expect(done).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });

@@ -134,8 +134,29 @@ describe('splitFlights', () => {
     const { bgo, bno, flightA, flightB } = splitFlights(results);
     expect(bgo.playerId).toBe('p1');
     expect(bno.playerId).toBe('p1');
-    expect(flightA.map(r => r.playerId)).toEqual(['p2', 'p3']);
-    expect(flightB.map(r => r.playerId)).toEqual(['p4']);
+    // Pool after exclusion: p3(hcp15), p4(hcp17), p2(hcp24).
+    // Class A = lower-handicap half [p3, p4]; Class B = [p2].
+    expect(flightA.map(r => r.playerId)).toEqual(['p3', 'p4']);
+    expect(flightB.map(r => r.playerId)).toEqual(['p2']);
+  });
+
+  it('splits classes by handicap (low=A, high=B) but ranks within by net', () => {
+    const results = makeResults([
+      ['bgo', 70, 64, 6,  'BgoWinner'],   // lowest gross
+      ['bno', 90, 55, 35, 'BnoWinner'],   // lowest net
+      ['loA', 82, 68, 14, 'LoA'],
+      ['loB', 80, 66, 16, 'LoB'],
+      ['hiA', 88, 70, 24, 'HiA'],
+      ['hiB', 85, 72, 22, 'HiB'],
+    ]);
+    const { bgo, bno, flightA, flightB } = splitFlights(results);
+    expect(bgo.playerId).toBe('bgo');
+    expect(bno.playerId).toBe('bno');
+    // Pool by handicap: loA(14), loB(16), hiB(22), hiA(24) → A=[loA,loB], B=[hiB,hiA].
+    // Within A ranked by net: loB(66) before loA(68). Within B: hiA(70) before hiB(72).
+    expect(flightA.map(r => r.playerId)).toEqual(['loB', 'loA']);
+    expect(flightA.map(r => r.rank)).toEqual([1, 2]);
+    expect(flightB.map(r => r.playerId)).toEqual(['hiA', 'hiB']);
   });
 
   it('handles BGO != BNO (different players)', () => {

@@ -55,7 +55,8 @@ open dist/index.html
 - **Handicap:** Σ(stroke − par) on those 6 holes × 3 (no cap)
 - **Net:** Gross − Handicap
 - **Tie-breaker:** Lower handicap wins; if still tied, alphabetical name
-- **Class A/B:** After excluding BGO+BNO winners, top 50% by net = Class A
+- **Class A/B:** After excluding BGO+BNO winners, split by **handicap** — lower-handicap half = Class A, higher-handicap half = Class B. Ranking/winner **within** each class is by lowest net.
+- **DNF:** Players marked DNF may submit partial scores but are excluded from net/handicap, all prizes, and the best-flight (avg-net) standings.
 - **Prizes:** BGO, BNO, Class A 1st, Class B 1st (no double prizes)
 
 ## Troubleshooting

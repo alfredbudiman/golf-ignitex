@@ -68,6 +68,13 @@ export function compareNetTiebreak(a, b) {
   return a.name.localeCompare(b.name);
 }
 
+// Used to split classes: lower handicap first (tiebreak by net, then name).
+export function compareHandicapTiebreak(a, b) {
+  if (a.handicap !== b.handicap) return a.handicap - b.handicap;
+  if (a.net !== b.net) return a.net - b.net;
+  return a.name.localeCompare(b.name);
+}
+
 export function splitFlights(results) {
   if (results.length === 0) return { bgo: null, bno: null, flightA: [], flightB: [] };
 
@@ -78,11 +85,17 @@ export function splitFlights(results) {
   const bno = sortedByNet[0];
 
   const excludedIds = new Set([bgo.playerId, bno.playerId]);
-  const pool = sortedByNet.filter(r => !excludedIds.has(r.playerId));
+  const pool = results.filter(r => !excludedIds.has(r.playerId));
 
-  const flightASize = Math.ceil(pool.length / 2);
-  const flightA = pool.slice(0, flightASize).map((r, i) => ({ ...r, rank: i + 1 }));
-  const flightB = pool.slice(flightASize).map((r, i) => ({ ...r, rank: i + 1 }));
+  // Split into classes by HANDICAP — lower handicaps → Class A, higher → Class B.
+  const byHandicap = [...pool].sort(compareHandicapTiebreak);
+  const flightASize = Math.ceil(byHandicap.length / 2);
+  const classA = byHandicap.slice(0, flightASize);
+  const classB = byHandicap.slice(flightASize);
+
+  // Rank WITHIN each class by NET (lowest net = rank 1).
+  const flightA = [...classA].sort(compareNetTiebreak).map((r, i) => ({ ...r, rank: i + 1 }));
+  const flightB = [...classB].sort(compareNetTiebreak).map((r, i) => ({ ...r, rank: i + 1 }));
 
   return { bgo, bno, flightA, flightB };
 }
